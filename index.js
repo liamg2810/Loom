@@ -22,11 +22,11 @@ function reactive(val) {
 		return reactives[name].v;
 	};
 	reactives[name].setter = (v) => {
-		for (const l of reactives[name].listeners) {
-			l.innerText = v;
-		}
-
 		reactives[name].v = v;
+
+		for (const l of reactives[name].listeners) {
+			l(v);
+		}
 	};
 
 	return [reactives[name].getter, reactives[name].setter];
@@ -42,7 +42,9 @@ function AddToDOM(tagName, value = "", onClick = () => {}) {
 
 		for (const v of Object.values(reactives)) {
 			if (v.getter === value) {
-				v.listeners.push(t);
+				v.listeners.push((val) => {
+					t.innerText = val;
+				});
 				break;
 			}
 		}
@@ -51,17 +53,40 @@ function AddToDOM(tagName, value = "", onClick = () => {}) {
 	t.addEventListener("click", onClick);
 
 	app.appendChild(t);
+
+	return t;
+}
+
+function effect(getter, callback) {
+	for (const v of Object.values(reactives)) {
+		if (v.getter === getter) {
+			v.listeners.push(callback);
+			return;
+		}
+	}
 }
 
 let [getA, setA] = reactive(2);
 let [getB, setB] = reactive(5);
 
-AddToDOM("h1", getA);
+let t = AddToDOM("h1", getA);
 AddToDOM("h2", getB, () => {
 	setB("OW!");
 });
 AddToDOM("button", "Click me", () => {
 	setA(getA() + 1);
+});
+
+effect(getA, (val) => {
+	if (val % 2 === 0) {
+		try {
+			app.removeChild(t);
+		} catch {}
+	} else {
+		app.appendChild(t);
+	}
+
+	setB(`Variable A is value ${val}`);
 });
 
 setA(10);
