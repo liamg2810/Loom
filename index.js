@@ -32,31 +32,44 @@ function reactive(val) {
 	return [reactives[name].getter, reactives[name].setter];
 }
 
-function AddToDOM(tagName, getter) {
+function AddToDOM(tagName, value = "", onClick = () => {}) {
 	const t = document.createElement(tagName);
-	t.innerText = getter();
-	app.appendChild(t);
 
-	for (const v of Object.values(reactives)) {
-		if (v.getter === getter) {
-			v.listeners.push(t);
-			break;
+	if (!(value instanceof Function)) {
+		t.innerText = value;
+	} else {
+		t.innerText = value();
+
+		for (const v of Object.values(reactives)) {
+			if (v.getter === value) {
+				v.listeners.push(t);
+				break;
+			}
 		}
 	}
+
+	t.addEventListener("click", onClick);
+
+	app.appendChild(t);
 }
 
 let [getA, setA] = reactive(2);
 let [getB, setB] = reactive(5);
 
 AddToDOM("h1", getA);
-AddToDOM("h2", getB);
+AddToDOM("h2", getB, () => {
+	setB("OW!");
+});
+AddToDOM("button", "Click me", () => {
+	setA(getA() + 1);
+});
 
 setA(10);
 
 setTimeout(() => {
 	setA(20);
+}, 500);
 
-	setTimeout(() => {
-		setB(30);
-	}, 1000);
+setTimeout(() => {
+	setB(30);
 }, 1000);
