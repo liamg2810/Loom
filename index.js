@@ -32,27 +32,51 @@ function reactive(val) {
 	return [reactives[name].getter, reactives[name].setter];
 }
 
-function AddToDOM(tagName, value = "", onClick = () => {}) {
-	const t = document.createElement(tagName);
+/**
+ *
+ * @param {{
+ * tag: string;
+ * className?:string;
+ * value?: () => string;
+ * dependencies?: (() => any)[];
+ * eventListeners?: {name: string; callback: () => void}[];
+ * parent?: HTMLElement
+ * }} element
+ */
+function CreateElement(element) {
+	const t = document.createElement(element.tag);
 
-	if (!(value instanceof Function)) {
-		t.innerText = value;
-	} else {
-		t.innerText = value();
+	if (element.className !== null) {
+		t.className = element.className;
+	}
 
-		for (const v of Object.values(reactives)) {
-			if (v.getter === value) {
-				v.listeners.push((val) => {
-					t.innerText = val;
-				});
-				break;
+	if (element.value !== undefined) {
+		const textNode = document.createTextNode(element.value());
+
+		if (element.dependencies !== undefined) {
+			for (const v of Object.values(reactives)) {
+				if (element.dependencies.includes(v.getter)) {
+					v.listeners.push((val) => {
+						textNode.data = element.value();
+					});
+				}
 			}
+		}
+
+		t.appendChild(textNode);
+	}
+
+	if (element.eventListeners !== undefined) {
+		for (const listener of element.eventListeners) {
+			t.addEventListener(listener.name, listener.callback);
 		}
 	}
 
-	t.addEventListener("click", onClick);
-
-	app.appendChild(t);
+	if (element.parent !== undefined) {
+		element.parent.appendChild(t);
+	} else {
+		app.appendChild(t);
+	}
 
 	return t;
 }
@@ -67,34 +91,24 @@ function effect(getter, callback) {
 }
 
 let [getA, setA] = reactive(2);
-let [getB, setB] = reactive(5);
 
-let t = AddToDOM("h1", getA);
-AddToDOM("h2", getB, () => {
-	setB("OW!");
-});
-AddToDOM("button", "Click me", () => {
-	setA(getA() + 1);
+const d = CreateElement({
+	tag: "div",
+	value: () => `My value is: ${getA()}`,
+	dependencies: [getA],
 });
 
-effect(getA, (val) => {
-	if (val % 2 === 0) {
-		try {
-			app.removeChild(t);
-		} catch {}
-	} else {
-		app.appendChild(t);
-	}
-
-	setB(`Variable A is value ${val}`);
+CreateElement({
+	tag: "Button",
+	className: "btn",
+	value: () => "Click me",
+	eventListeners: [
+		{
+			name: "click",
+			callback: () => {
+				setA(getA() + 1);
+			},
+		},
+	],
+	parent: d,
 });
-
-setA(10);
-
-setTimeout(() => {
-	setA(20);
-}, 500);
-
-setTimeout(() => {
-	setB(30);
-}, 1000);
