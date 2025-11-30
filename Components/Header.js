@@ -1,6 +1,10 @@
 import { BaseComponent } from "./BaseComponent.js";
 
 export class HeaderComponent extends BaseComponent {
+	/**
+	 *
+	 * @param {import("./BaseComponent.js").PROPS} props
+	 */
 	constructor(props) {
 		super(props);
 

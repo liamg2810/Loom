@@ -1,4 +1,5 @@
 import { ButtonComponent } from "./Components/Button.js";
+import { Counter } from "./Components/Counter.js";
 import { HeaderComponent } from "./Components/Header.js";
 
 const app = document.getElementById("app");
@@ -18,3 +19,6 @@ const button = new ButtonComponent({
 h.mount(app);
 
 button.mount(h);
+
+const counter = new Counter();
+counter.mount(app);

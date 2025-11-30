@@ -43,8 +43,6 @@ export class BaseComponent {
 	declare(props) {
 		this.element = document.createElement(this.tagName);
 
-		console.log(this.element);
-
 		if (props.textContent !== undefined) {
 			this.textNode = document.createTextNode(props.textContent());
 			this.element.appendChild(this.textNode);
@@ -58,14 +56,19 @@ export class BaseComponent {
 			this.element.addEventListener("click", props.onclick);
 	}
 
+	/**
+	 *
+	 * @param {any} value
+	 * @returns {[() => any, (v: any) => void]}
+	 */
 	state(value) {
 		const r = reactive(value);
 
 		this.states.push(r);
 
 		if (this.textNode !== undefined) {
-			r.listeners.appendChild(() => {
-				this.textNode = this.props.textContent();
+			r.listeners.push(() => {
+				this.textNode.textContent = this.props.textContent();
 			});
 		}
 

@@ -1,20 +1,28 @@
 export function reactive(val) {
-	const name = reactiveIndex;
-
-	reactiveIndex++;
-
-	return (reactive = {
+	/**
+	 * @type {{
+	 * v: any;
+	 * listeners: (() => void)[];
+	 * getter: () => any;
+	 * setter: (v: any) => void;
+	 * }}
+	 */
+	const r = {
 		v: val,
 		listeners: [],
-		getter: () => {
-			return reactives[name].v;
-		},
-		setter: (v) => {
-			reactives[name].v = v;
+	};
 
-			for (const l of reactives[name].listeners) {
-				l(v);
-			}
-		},
-	});
+	r.getter = () => {
+		return r.v;
+	};
+
+	r.setter = (v) => {
+		r.v = v;
+
+		for (const l of r.listeners) {
+			l(v);
+		}
+	};
+
+	return r;
 }
